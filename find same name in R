@@ -1,0 +1,60 @@
+a<-read.csv("data.csv",header=F)
+#the data rowname is sample name, colnames is variable name, last col is class information,and stroe the colname in row 1
+a <- as.matrix(a)
+class<- a[-c(1),ncol(a)]
+var<-(a[1,])
+colnames(a)<-var
+a <- a[-1,-ncol(a)]
+class(a) <- "numeric"
+nc<-ncol(a)
+nr<-nrow(a)
+
+cval<-list()
+ar<-array()
+for(i in 1:nc){
+	grena<-which(var==var[i])
+	cval<-length(grena)
+		if(cval>1){
+ar<-c(ar,i)
+print(var[i])
+print(i)}}
+#§ä¥X¬Û¦P¦WºÙ
+grena<-list() 
+na<-(unique(var))
+nuna<-length(na)
+c<-NULL
+for(i in 1:nuna){
+	arr<-NULL
+	for(j in i:nc){
+		grena<-(na[i]==var[j])
+		if(grena==TRUE){
+		arr<-c(arr,j)
+		}}
+	if(length(arr)!=1){
+	c<-cbind(c,(rowSums(a[,(c(arr))])))
+	}else{c<-cbind(c,a[,(c(arr))])
+}}
+c[,723]<-class
+colnames(c)<-na
+
+write.table(c,"c.csv",sep=",",row.name=F)
+a<-read.csv("c.csv")
+dat <- japply( a, which(sapply(a, class)=="character"), as.numeric )
+
+
+nuna<-length(na)-1
+for(i in 1:nuna){
+	arr<-NULL
+	arr<-which(var==na[i])
+	if(length(arr)!=1){
+	c<-cbind(c,(rowSums(a[,(c(arr))])))
+	}else{c<-cbind(c,a[,(c(arr))])
+}}
+c<-as.data.frame(c)
+c<-cbind(c,class)
+colnames(c)<-na
+dat <- japply( c, which(sapply(c, class)=="character"), as.numeric )
+
+
+
+subset(c,sel=1,subset=c(T,rep=F))
