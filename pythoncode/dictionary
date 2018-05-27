@@ -12,3 +12,24 @@ world={"albania":2.77}
 
 增加
   world["sealand]=0.00027
+
+檢視是否存在
+  "sealand" in world 得到的結果會是True or False
+  
+刪除
+  del(world["sealand"])
+ 
+Dictionary中可以再有dictionary
+  europe = { 'spain': { 'capital':'madrid', 'population':46.77 },
+           'france': { 'capital':'paris', 'population':66.03 },}
+尋找方式
+  europe['spain']['population']
+  
+增加
+  europe["italy"]=data (data是某個dictionary) 
+  
+Dictionary跟list的比較
+  相同:選擇、更新、移除都是用[]
+  相異:list索引是數字、dictionary是靠key
+  list使用時間:需要選取整個subset
+  dictionary:以key來尋找內容
