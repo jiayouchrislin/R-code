@@ -1,2 +1,32 @@
 list+list :兩個list合併，而非數學加法
+list可以包含各種類型的資料 (numpy array中都要同個類型)
+list中可以有list [[],[],[],[]]
+list格式:[]  比較:numpy array:array[]
+
+索引 index
+  fam[0]
+  從0開始算第一個，從-1算最後一個，-2倒數第二
   
+取部分 slicing
+  fam[3:5]  只會出現3跟4
+  fam[:4] 出現從頭到3
+  fam[5:] 出現從頭到最後
+  
+改變 change
+  fam[7]=1.86  直接改
+  
+增加 Adding
+  fam=fam+["me",1.79]
+  
+刪除 removing
+  del(fam[2]) 
+  
+相等 (改了y，x也受影響)
+  x=[1,2,3]
+  y=x
+  y[0]=5 
+  此時y跟x都是 [5,2,3]
+沒要相等的話
+  y=x這步要改成
+  y=list(x)
+  y=x[:]
