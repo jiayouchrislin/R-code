@@ -1,0 +1,14 @@
+Dictionary 格式{} 比較:list[]
+優點:速度快
+world={"albania":2.77}
+尋找
+  world["albania"] 得到的結果是2.77
+列出現有的key
+  europe.keys()
+ 
+注意事項
+  1 同名的key只能出現一次，不然後面那個會取代前面出現那個
+  2 key必須是不變的，例如邏輯值、string、數字，例如不能是list
+
+增加
+  world["sealand]=0.00027
