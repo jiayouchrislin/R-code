@@ -1,0 +1,46 @@
+comparison operators
+  <
+  ==
+  <=
+  !=
+
+  "carl"<"chris" 得到的結果是True，因為字母順序
+  3<"chris" 結果會是錯誤，因為無法比較不同類型的資廖
+  bmi>23 得到的結果是 array([False,False,True])
+  
+boolean operators
+  and  比較:R是&
+  or
+  not  比較:R是!
+  True and False 結果是False，
+  但Numpy array例外，結果會是錯誤，例如 bmi>21 and bmi<22
+  Numpy array
+    and: np.logical_and()
+    or:  np.logical_or() 
+    not: np.logical_not()
+    
+ Pandas compare
+  is_huge=brics["areas"]>8 結果會是series的True or False
+  brics[is_huge] 結果會挑出True的那幾行
+  但多條件的(有用到and, or ,not)，還是要用np.logical_系列
+   np.logical_and(brics["areas"]>8,brics["areas"<10])
+    
+conditional statement
+  if 
+    if condition:
+      expression
+      
+  else 
+    if condition:
+      expression
+    else :
+      expression
+   
+  elif
+    if condition:
+      expression
+    elif condition:
+      expression
+    else :
+      expression
+      
