@@ -1,0 +1,5 @@
+FITS_tools
+matplotlib
+astropy
+scipy
+pytest

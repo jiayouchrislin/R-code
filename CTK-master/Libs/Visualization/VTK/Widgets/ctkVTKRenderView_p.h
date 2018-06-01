@@ -1,0 +1,99 @@
+/*=========================================================================
+
+  Library:   CTK
+
+  Copyright (c) Kitware Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.commontk.org/LICENSE
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+=========================================================================*/
+
+#ifndef __ctkVTKRenderView_p_h
+#define __ctkVTKRenderView_p_h
+
+// Qt includes
+#include <QObject>
+
+// CTK includes
+#include <ctkPimpl.h>
+#include <ctkVTKObject.h>
+#include "ctkVTKRenderView.h"
+
+// VTK includes
+#include <QVTKWidget.h>
+#include <vtkAxesActor.h>
+#include <vtkCornerAnnotation.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkSmartPointer.h>
+#include <vtkWeakPointer.h>
+
+class vtkRenderWindowInteractor;
+
+//-----------------------------------------------------------------------------
+class ctkVTKRenderViewPrivate : public QObject
+{
+  Q_OBJECT
+  Q_DECLARE_PUBLIC(ctkVTKRenderView);
+
+protected:
+  ctkVTKRenderView* const q_ptr;
+
+public:
+  ctkVTKRenderViewPrivate(ctkVTKRenderView& object);
+
+  /// Convenient setup methods
+  void setupCornerAnnotation();
+  void setupRendering();
+  void setupDefaultInteractor();
+
+  void zoom(double zoomFactor);
+
+  void pitch(int rotateDegrees, ctkVTKRenderView::RotateDirection pitchDirection);
+  void roll(int rotateDegrees, ctkVTKRenderView::RotateDirection rollDirection);
+  void yaw(int rotateDegrees, ctkVTKRenderView::RotateDirection yawDirection);
+
+public slots:
+  void doSpin();
+  void doRock();
+
+public:
+
+  QVTKWidget*                                   VTKWidget;
+  vtkSmartPointer<vtkRenderer>                  Renderer;
+  vtkSmartPointer<vtkRenderWindow>              RenderWindow;
+  bool                                          RenderPending;
+  bool                                          RenderEnabled;
+  
+  vtkSmartPointer<vtkAxesActor>                 Axes;
+  vtkSmartPointer<vtkOrientationMarkerWidget>   Orientation;
+  vtkSmartPointer<vtkCornerAnnotation>          CornerAnnotation;
+  double                                        ZoomFactor;
+  int                                           PitchRollYawIncrement;
+  ctkVTKRenderView::RotateDirection             PitchDirection;
+  ctkVTKRenderView::RotateDirection             RollDirection;
+  ctkVTKRenderView::RotateDirection             YawDirection;
+  ctkVTKRenderView::RotateDirection             SpinDirection;
+  bool                                          SpinEnabled;
+  int                                           AnimationIntervalMs;
+  int                                           SpinIncrement;
+  bool                                          RockEnabled;
+  int                                           RockIncrement;
+  int                                           RockLength;
+
+  vtkWeakPointer<vtkRenderWindowInteractor>     CurrentInteractor;
+
+};
+
+#endif
