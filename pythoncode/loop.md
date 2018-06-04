@@ -21,3 +21,20 @@ loop in 2D numpy arrays
     print(val)   (結果是每一個array)
    for val in np.nditer(means):
     print(val)   (結果是每一個array中的每個元素)
+
+loop in pandas
+  brics=pd.read_csv("brics.csv",index_col=0)
+  for val in brics:
+    print(val)   (這裡印出來的是column名)
+  for lab, row in brics.iterrows():
+    print(lab)
+    print(row)
+  for lab, row in brics.iterrows():
+    print(lab+": "+row["capital"])  (選出想印的column)
+  增加column
+  for lab, row in brics.iterrows():
+    brics.loc[lab,"name_length"]=len(row["country"])
+  =
+  bircs["name_length"]=bircs["country"].apply(len)
+  
+    
