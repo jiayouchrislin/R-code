@@ -1,0 +1,1259 @@
+{
+  "metadata" : {
+    "name" : "readanalysis1",
+    "user_save_timestamp" : "1970-01-01T08:00:00.000Z",
+    "auto_save_timestamp" : "1970-01-01T08:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "E32A950B0D4441598C8492D014AEF318"
+    },
+    "cell_type" : "markdown",
+    "source" : "# analysis"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "7C77C1C9C3A8435786FD1C31D7962240"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Required imports"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "7C77C1C9C3A8435786FD1C31D7962240"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.sql.SQLContext\nimport org.apache.spark.SparkContext\nimport org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}\nimport org.apache.spark.sql.types._\nimport org.apache.spark.sql.{Column, Row, SQLContext}\nimport org.apache.spark.rdd._\nimport org.apache.spark.sql._",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "B3B8E2CF53374438A727A3EE06EAA6E0"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Reading in and exploring the data -- Spark SQL (and DataFrame)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "34CA503BAF6448128227133C25ECCAA9"
+    },
+    "cell_type" : "code",
+    "source" : "//val sqlContext = new SQLContext(sparkContext)\n//val df = sqlContext.read.parquet(\"kddcup.parquet\").cache\nval sqlContext = new SQLContext(sparkContext)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D69160DBD57F44B997E251817F073E1B"
+    },
+    "cell_type" : "markdown",
+    "source" : "病人條件檔\\4_急診掛號\\5_離部檢核"
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C6C6F40C604645EB9308DE46940AF804"
+    },
+    "cell_type" : "code",
+    "source" : "val df = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C0.parquet\")\nval df4 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C4.parquet\")\nval df5 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C5.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1721264937-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "EFF4385564EC446E8A2C9D1B01F27B33"
+    },
+    "cell_type" : "code",
+    "source" : "val dfuni = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C0unique.parquet\")\ndfuni.take(dfuni.count.toInt)\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "printSchema"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "EE5D3C0EA14D4978837775FBF5FC3DC8"
+    },
+    "cell_type" : "code",
+    "source" : "df.printSchema\n//df.show\ndf4.printSchema\n//df4.show\ndf5.printSchema\n//df5.show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "DED7FBF8DE644C6CB90D07CDA97C8FC1"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm0 = df.select(\"ACCOUNTIDSE\").distinct()\nmatchm0.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "9D49DDC4768F41C88266A2936305205A"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm4 = df4.select(\"CHARTNO\",\"ACCOUNTIDSE\").distinct()\nmatchm4.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "9D49DDC4768F41C88266A2936305205A"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm5 = df5.select(\"CHARTNO\",\"ACCOUNTIDSE\").distinct()\nmatchm5.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "7048A80F94114B2FABEFD5CD17ED93F6"
+    },
+    "cell_type" : "code",
+    "source" : "val datacount= df.count.toInt  \nval datacount4=df4.count.toInt\nval datacount5=df5.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "df.take(datacount)\ndf4.take(datacount4)\ndf5.take(datacount5)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1906439340-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CBF82C3AC3B548B5A9111EE1FBA5E042"
+    },
+    "cell_type" : "code",
+    "source" : "df5.take(1000)\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "Combined data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C76EAA70D27E42C281210E7731BDA531"
+    },
+    "cell_type" : "code",
+    "source" : "val dfEx = df.join(df4, Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))\nval dfExc= dfEx.join(df5, Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1658932872-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "028B598666084533BFC1015459C04057"
+    },
+    "cell_type" : "code",
+    "source" : "//val dfExccount = dfExc.count.toInt\n//dfExc.take(dfExccount)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "5D72E417D2F8437C8D33BFEA5008EB0E"
+    },
+    "cell_type" : "code",
+    "source" : "//dfExc.take(242242)\ndfExc.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "80EF9FBD6A8E4C30931D1AB687AFF5FB"
+    },
+    "cell_type" : "markdown",
+    "source" : "DF"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1468502806-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "B2EFE93FD1B8422E807CED86BB256311"
+    },
+    "cell_type" : "code",
+    "source" : "df.groupBy(\"DEPTCODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab737849705-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "AD247309DEA4463686BF982440849F5E"
+    },
+    "cell_type" : "code",
+    "source" : "df.groupBy(\"SPECIALCURECODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1548222246-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CF468EBDA7DD4359940D94045D651D22"
+    },
+    "cell_type" : "code",
+    "source" : "df.groupBy(\"DEPTCODE\",\"SPECIALCURECODE\").count().collect.toList.map( row => (Seq(row.getString(0),row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "F55240BC38A94E3E8817D236C047F2A2"
+    },
+    "cell_type" : "markdown",
+    "source" : "ＤＦ1"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1932773189-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "D4B549FF47EF411EAEC05DEB05A1CC51"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ACCOUNTSEQNO\").count().collect.toList.map( row => (row.getInt(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab483437249-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "DA37633B95474F74890B28B7C1969C8F"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"VISITINTHREEDAYS\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab488138538-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "A4B8F2ACA18D4186B322EAC783401ECF"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ASSIGNAREA\").count().collect.toList.map( row => (row.getString(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab836012960-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "AF17FD90306D4AE2892EC03AFC0EAAF7"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ISFIRSTVISIT\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab240656345-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "04083790179944D582C468F1013CCEEF"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ACCOUNTSEQNO\",\"VISITINTHREEDAYS\").count().collect.toList.map( row => (Seq(row.getInt(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab171288929-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "A369403638D44B4684280208A929CC58"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"LATESTPACSREPORTTIME\",\"LATESTREPORTTIME\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1255458724-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "5DE8F80D4CF24A3D8501B27D2A086974"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ASSIGNAREA\",\"ACCOUNTSEQNO\").count().collect.toList.map( row => (Seq(row.getString(0)),row.getInt(1), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab850442472-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "FA1AC051E66044C38EF487AC475F0D73"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ACCOUNTSEQNO\",\"ISFIRSTVISIT\").count().collect.toList.map( row => (row.getInt(0).toString,row.getString(1), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab514553462-1\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "63C51ED832D1461F87F372DE9545A03B"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"VISITINTHREEDAYS\",\"ASSIGNAREA\").count().collect.toList.map( row => (Seq(row.getString(1).toString,row.getString(0)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab695407503-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CD7F69ACB71C4273823BC11166D6AE86"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"VISITINTHREEDAYS\",\"ISFIRSTVISIT\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1847983720-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "9193E705B4344D84AEFC2504CC136766"
+    },
+    "cell_type" : "code",
+    "source" : "df4.groupBy(\"ASSIGNAREA\",\"ISFIRSTVISIT\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "6F488DE3F34C49B98D31E3F83925C937"
+    },
+    "cell_type" : "markdown",
+    "source" : "ＤＦ5"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1829270858-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "5ED68DE3B0A24B8A8D8810028D0989A8"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"DISCHARGECHECK\").count().collect.toList.map( row => (row.getString(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1819619076-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CE0C10B3DA884C5783CE9F66B38E24E2"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"SYNPHYSTATUS\").count().collect.toList.map( row => (row.getString(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1764896677-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "2BBD790B8E9E4E4C86FEBAD465E7DA5D"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"EXAMSTATUS\").count().collect.toList.map( row => (row.getString(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1211705400-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "11B84E6A77C3474E845258D6207F6E71"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"CLINICSTRACE\").count().collect.toList.map( row => (row.getString(0).toString, row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1939194155-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "52FD8E4538554B55BEDECB3D5AA38188"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"DISCHARGECHECK\",\"SYNPHYSTATUS\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab910399873-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "B7F0B47FD9734E1A8310F320F2B91532"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"DISCHARGECHECK\",\"EXAMSTATUS\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab516748383-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "BE42557C0A824FA18BAB292A3C9CE761"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"DISCHARGECHECK\",\"CLINICSTRACE\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1474183412-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CDF0BFD161FF43D1AF396F9FA4C6AD34"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"SYNPHYSTATUS\",\"EXAMSTATUS\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab301519930-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "BE42557C0A824FA18BAB292A3C9CE761"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"SYNPHYSTATUS\",\"CLINICSTRACE\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab528352818-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "BE42557C0A824FA18BAB292A3C9CE761"
+    },
+    "cell_type" : "code",
+    "source" : "df5.groupBy(\"EXAMSTATUS\",\"CLINICSTRACE\").count().collect.toList.map( row => (Seq(row.getString(0).toString,row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "4ACDDAE6F0F0423DA8674035BD0EEA3E"
+    },
+    "cell_type" : "markdown",
+    "source" : "6_急診醫令執行檔\\7_急診醫囑執行檔"
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "4864923AAFD74D7685DC6D978243AAB5"
+    },
+    "cell_type" : "code",
+    "source" : "val df6 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C6.parquet\")\nval df6un = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C6unique.parquet\")\nval df7 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C7.parquet\")\nval df7un = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C7unique.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "show data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C89031A038AF4A8887118BBB2FE7DB13"
+    },
+    "cell_type" : "code",
+    "source" : "df6un.printSchema\ndf7un.printSchema\ndf6.printSchema\ndf7.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "850C4B3A33214318B6C205C7C12CA31B"
+    },
+    "cell_type" : "code",
+    "source" : "df6.show\ndf7.show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1424298623-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "5A3707D3DCAA4A19A1F03943166512EA"
+    },
+    "cell_type" : "code",
+    "source" : "df7.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "28F35072D1504654879A1CBA4DE27988"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm6 = df6.select(\"CHARTNO\",\"ACCOUNTIDSE\").distinct()\nmatchm6.count.toInt\n//val datacount6=df6.count.toInt\n//val datacount7=df7.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "05205FCB76AA47E390BD69B531E74038"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm7 = df7.select(\"CHARTNO\",\"ACCOUNTIDSE\").distinct()\nmatchm7.count.toInt\n//df6.take(datacount6)\n//df7.take(datacount7)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab475825557-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CDF681027A4C46778E40FDC5A5E3D9EE"
+    },
+    "cell_type" : "code",
+    "source" : "df6un.take(df6un.count.toInt)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1323232636-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "104797508F2042D581CF983F55D3D796"
+    },
+    "cell_type" : "code",
+    "source" : "df7un.take(df7un.count.toInt)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "FB959042D9EB488C805D276B571DCB44"
+    },
+    "cell_type" : "code",
+    "source" : "df6un.select(\"ORDERCODE\").distinct().count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D0F1020E57A34D96AAB8E2FC4FF795AC"
+    },
+    "cell_type" : "code",
+    "source" : "df6un.select(\"ORDERNAME\").distinct().count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "470A2D96853D4AD68DC83FD0BCD7E539"
+    },
+    "cell_type" : "code",
+    "source" : "df6un.select(\"ORDERCHINNAME\").distinct().count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "392433C991004DAD866D82C5E4669781"
+    },
+    "cell_type" : "markdown",
+    "source" : "ＤＦ6"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab553194091-3\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "93CF5B73352C49A2B5D576E70ADA9897"
+    },
+    "cell_type" : "code",
+    "source" : "df6.groupBy(\"ORDERTYPECODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1364944274-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "02A61896057E4342977DC0B40286C2CB"
+    },
+    "cell_type" : "code",
+    "source" : "df6.groupBy(\"BILLTYPECODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1998326653-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "CC2DD1D77AD0447CB39ACDE407B07B41"
+    },
+    "cell_type" : "code",
+    "source" : "df6.groupBy(\"ORDERTYPECODE\",\"BILLTYPECODE\").count().collect.toList.map( row => (Seq(row.getString(0),row.getString(1)), row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab986608965-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"List Unique Values\",\n  \"rendererName\": \"Row Heatmap\"\n}"
+      },
+      "id" : "B4D603C2468442EA8A820E5C02B20EEA"
+    },
+    "cell_type" : "code",
+    "source" : "df6.groupBy(\"ACCOUNTIDSE\").count().collect.toList.map(row => (row.getLong(1))).groupBy(i=>i).mapValues(_.size)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "C5895BD1348A4CF28E4CEEA0281E9CFE"
+    },
+    "cell_type" : "markdown",
+    "source" : "DF7"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab892550951-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "515BBF7F46B949AAA171CF8D036D030B"
+    },
+    "cell_type" : "code",
+    "source" : "df7.groupBy(\"ACCOUNTIDSE\").count().collect.toList.map(row => (row.getLong(1))).groupBy(i=>i).mapValues(_.size)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "DB22058B1A7C433E802E223962246232"
+    },
+    "cell_type" : "code",
+    "source" : "df7.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1872717264-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "FB985A92D86242C099FB1F4A115D7583"
+    },
+    "cell_type" : "code",
+    "source" : "df7.groupBy(\"ISCOMPLETED\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "75235A337D05479C9FC1B845E69EEF74"
+    },
+    "cell_type" : "code",
+    "source" : "df7.groupBy(\"STATUS\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "BB155CBDFC2945A881EC2E6EE0725060"
+    },
+    "cell_type" : "code",
+    "source" : "df7.groupBy(\"STATUS\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "Combined data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "78085D68405A41C48589370FD6A434F7"
+    },
+    "cell_type" : "code",
+    "source" : "val dfcarenote = df6.join(df7, Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))\n//val dfcarenote = df6.join(df7, Seq(\"CHARTNO\",\"ACCOUNTIDSE\",\"ORDERSEQNO\"))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1988708471-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7B75F1BF5C5F486D83241698CC46E62D"
+    },
+    "cell_type" : "code",
+    "source" : "//dfcarenote.take(236429804)\ndfcarenote.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "C2C87B154556495F939B378996C628F8"
+    },
+    "cell_type" : "markdown",
+    "source" : "8_照會紀錄/9_照會時間紀錄"
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "A298BF345D6A40158536E07C6B2239EE"
+    },
+    "cell_type" : "code",
+    "source" : "val df8 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8.parquet\")\n//val df8un = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique.parquet\")\n//val df8un2 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique2.parquet\")\nval df9 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C9.parquet\")\nval df9un = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C9unique.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab669252810-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7C26B3CD91B845819590552C6B8DEAB0"
+    },
+    "cell_type" : "code",
+    "source" : "val df8un = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique.parquet\")\ndf8un.take(df8un.count.toInt)\nval df8un2 = sqlContext.read.parquet(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique2.parquet\")\ndf8un2.show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "show data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "B3DA4500D8784A46911E0018487B556D"
+    },
+    "cell_type" : "code",
+    "source" : "df8.printSchema\ndf9un.printSchema\ndf9.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "1ADF66D261FC480E821A1B9D0E36B99D"
+    },
+    "cell_type" : "code",
+    "source" : "//df8.show\ndf9un.count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D59B1796F70C4F538C356A5546961506"
+    },
+    "cell_type" : "code",
+    "source" : "val datacount8=df8.count.toInt\nval datacount9=df9.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab166743342-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [\n    \"CHARTNO\"\n  ],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count Unique Values\",\n  \"rendererName\": \"Table Barchart\"\n}"
+      },
+      "id" : "40F13E4765B04323B3B0D6D67CAA5620"
+    },
+    "cell_type" : "code",
+    "source" : "df8.take(datacount8)\ndf9.take(datacount9)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1362128051-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "1044A79EC0F84D7A83C413F1912B231B"
+    },
+    "cell_type" : "code",
+    "source" : "df8.take(100)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "29444BCF4D2C4BB787C59D6463E188B3"
+    },
+    "cell_type" : "code",
+    "source" : "val matchm8 = df8.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"CALLONIDSE\").distinct()\nmatchm8.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "Combined data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab427125267-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "90E1D68F87A642F59C19B13E2D46E3F6"
+    },
+    "cell_type" : "code",
+    "source" : "//var combineddf = df.join(df4, df.col(\"CHARTNO\",\"ACCOUNTIDSE\").equalTo(df4(\"CHARTNO\",\"ACCOUNTIDSE\")))\nval dfcarerecord = df9.join(df8, Seq(\"CHARTNO\",\"ACCOUNTIDSE\",\"CALLONIDSE\"))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "DDCF551B2B4A43CE869BA43B4BBC8C2F"
+    },
+    "cell_type" : "code",
+    "source" : "val dfcarenotecount = dfcarerecord.count.toInt\n//dfcarenote.take(dfcarenotecount)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab2072585972-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [\n    \"NOTTYPECODE\",\n    \"NOTSUBDEPTIDSE\",\n    \"CALLONIDSE\",\n    \"ACCOUNTIDSE\",\n    \"CREATEWARDCODE\",\n    \"REPLYDIAGNOSIS\"\n  ],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7B75F1BF5C5F486D83241698CC46E62D"
+    },
+    "cell_type" : "code",
+    "source" : "//dfcarenote.take()\ndfcarerecord.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab553547532-2\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "AC4004696154477299119DAAF0DD75C0"
+    },
+    "cell_type" : "code",
+    "source" : "//val recor= df8.select(\"CALLONDEPTCODE\",\"NOTSUBDEPTIDSE\",\"NOTTYPECODE\",\"CREATEWARDCODE\")\n//val CALLONDEPTCODEcount=recor.groupBy(\"CALLONDEPTCODE\").count().collect\n//CALLONDEPTCODEcount.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1587041124-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "2DAF23E7D4A843838981E1C27847877F"
+    },
+    "cell_type" : "code",
+    "source" : "df8.groupBy(\"NOTTYPECODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab694466826-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "05FDE65C36CA495A8906DF15E7CD15E0"
+    },
+    "cell_type" : "code",
+    "source" : "df8.groupBy(\"CREATEWARDCODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab648526202-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "1CB02CBA13264AE285C09ADFF1ADD107"
+    },
+    "cell_type" : "code",
+    "source" : "df8.groupBy(\"CALLONDEPTCODE\").count().collect.toList.map( row => (row.getString(0), row.getLong(1).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab44132646-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [\n    \"_2\"\n  ],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"List Unique Values\",\n  \"rendererName\": \"Bar Chart\"\n}"
+      },
+      "id" : "AA2C77596E64459C87790EBCF7951E62"
+    },
+    "cell_type" : "code",
+    "source" : "df8.groupBy(\"NOTTYPECODE\",\"CALLONDEPTCODE\").count().collect.toList.map( row => (Seq(row.getString(0), row.getString(1)),row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1060247818-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "771F04A958324E2F883A46C21C8208D1"
+    },
+    "cell_type" : "code",
+    "source" : "df8.groupBy(\"CREATEWARDCODE\",\"NOTTYPECODE\").count().collect.toList.map( row => (row.getString(0), row.getString(1),row.getLong(2).toDouble))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C045E2C3A5324E559A98D2E7B33B1376"
+    },
+    "cell_type" : "code",
+    "source" : "df8.select(\"REPLYDIAGNOSIS\").distinct().count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "C5589C367B2F445F8C57D292ED322019"
+    },
+    "cell_type" : "markdown",
+    "source" : "ＤＦ9"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "FD19C20B23414EE88C43B610237BF6E9"
+    },
+    "cell_type" : "code",
+    "source" : "df9un.select(\"ACCOUNTIDSE\").distinct().count",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1213819950-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "AF3DEA38EDEA4A0FB90B6773F49EA121"
+    },
+    "cell_type" : "code",
+    "source" : "val df9ACCOUNTIDSErep=df9un.groupBy(\"ACCOUNTIDSE\").count().collect.toList.map(row => (row.getLong(1).toDouble))\ndf9ACCOUNTIDSErep.groupBy(i=>i).mapValues(_.size)\n//計算數量",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1168633908-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [\n    \"_2\"\n  ],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Integer Sum\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "A3747DF0FD84452DA38FC597BDA4430D"
+    },
+    "cell_type" : "code",
+    "source" : "//df9ACCOUNTIDSErep.filter(_==1)\n//比較資料",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "B50AA637FDA44ECC8F9A595CB0CAAF2F"
+    },
+    "cell_type" : "code",
+    "source" : "df9ACCOUNTIDSErep.filter(_.Double >1).map(_.String)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "DA5B08F982FE4F8B937B50B3BE051EF2"
+    },
+    "cell_type" : "markdown",
+    "source" : "try\n"
+  }, {
+    "metadata" : {
+      "id" : "BAAE1E7241B34F1C969C3B034F924232"
+    },
+    "cell_type" : "markdown",
+    "source" : "save dataframe"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "204672386A5340E2A62942B73AA2A147"
+    },
+    "cell_type" : "code",
+    "source" : "val ch6= df9un.select(\"CHARTNO\",\"ACCOUNTIDSE\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "0E4FB400D84247CB94EBC17899A54F14"
+    },
+    "cell_type" : "code",
+    "source" : "val ch7= df7.join(ch6,Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))\nch7.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C51CDAAF2F554FAE8A3E1E256733992D"
+    },
+    "cell_type" : "code",
+    "source" : "ch7.show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "077FDE752CF94168BAAFA8D4E604237B"
+    },
+    "cell_type" : "code",
+    "source" : "dfcarenote.filter(\"ACCOUNTIDSE\" == \"A298405\").show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "BC81BFDE7FE544298DD5E84F954751C1"
+    },
+    "cell_type" : "code",
+    "source" : "df.write.mode('append').json(yourtargetpath)\ndataframe.write.format(\"org.apache.spark.sql.json\").mode(SaveMode.Append).save(\"hdfs://localhost:9000/sampletext.txt\");\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab399765759-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "960217242ABF4B81A48A4CB3FCDF0BDB"
+    },
+    "cell_type" : "code",
+    "source" : "df8.take(10)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "A81027EE56FA4C6C8440F693B56D0CB1"
+    },
+    "cell_type" : "code",
+    "source" : "val df9time df9.select(\"ACCOUNTIDSE\",\"CALLONIDSE\",\"EVENTDATETIME\",",
+    "outputs" : [ ]
+  } ],
+  "nbformat" : 4
+}

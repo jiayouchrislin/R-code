@@ -1,0 +1,946 @@
+{
+  "metadata" : {
+    "name" : "preview",
+    "user_save_timestamp" : "1970-01-01T08:00:00.000Z",
+    "auto_save_timestamp" : "1970-01-01T08:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "E32A950B0D4441598C8492D014AEF318"
+    },
+    "cell_type" : "raw",
+    "source" : "# Preprocess"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "7C77C1C9C3A8435786FD1C31D7962240"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Required imports"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "7C77C1C9C3A8435786FD1C31D7962240"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.sql.SQLContext\nimport org.apache.spark.SparkContext\nimport org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}\nimport org.apache.spark.sql.types._\nimport org.apache.spark.sql.{Column, Row, SQLContext}\nimport org.apache.spark.rdd._\nimport org.apache.spark.ml.feature.StringIndexer \nimport org.apache.spark.sql.functions._",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "import org.apache.spark.sql.SQLContext\nimport org.apache.spark.SparkContext\nimport org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}\nimport org.apache.spark.sql.types._\nimport org.apache.spark.sql.{Column, Row, SQLContext}\nimport org.apache.spark.rdd._\nimport org.apache.spark.ml.feature.StringIndexer\nimport org.apache.spark.sql.functions._\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 1,
+      "time" : "Took: 1 second 308 milliseconds, at 2018-3-25 2:42"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "B3B8E2CF53374438A727A3EE06EAA6E0"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Reading in and exploring the data -- Spark SQL (and DataFrame)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "34CA503BAF6448128227133C25ECCAA9"
+    },
+    "cell_type" : "code",
+    "source" : "val sqlContext = new SQLContext(sparkContext)\n//val df = sqlContext.read.parquet(\"kddcup.parquet\").cache",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "sqlContext: org.apache.spark.sql.SQLContext = org.apache.spark.sql.SQLContext@76808f2a\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2,
+      "time" : "Took: 1 second 177 milliseconds, at 2018-3-25 2:42"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D69160DBD57F44B997E251817F073E1B"
+    },
+    "cell_type" : "code",
+    "source" : "病人條件檔\\4_急診掛號\\5_離部檢核",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "2952C501EE2C47B8893C42EAE8F21022"
+    },
+    "cell_type" : "code",
+    "source" : "val df = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_病人條件檔.csv\")\nval df4 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_4_急診掛號.csv\")\nval df5 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_5_離部檢核.csv\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "9A079B1018B14D74819646756C3558B5"
+    },
+    "cell_type" : "code",
+    "source" : "df5.select(\"ILLNESSEXPLAIN\").distinct().show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "printSchema"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "EE5D3C0EA14D4978837775FBF5FC3DC8"
+    },
+    "cell_type" : "code",
+    "source" : "val df = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_病人條件檔.csv\")\ndf.printSchema",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "root\n |-- CHARTNO: string (nullable = true)\n |-- ACCOUNTIDSE: string (nullable = true)\n |-- PATIENTCLASSCODE: string (nullable = true)\n |-- HOSPITALCODE: string (nullable = true)\n |-- DEPTCODE: string (nullable = true)\n |-- COMECLINICDATE: string (nullable = true)\n |-- SPECIALCURECODE: string (nullable = true)\n |-- CURETYPECODE: string (nullable = true)\n |-- CUREITEMCHINNAME: string (nullable = true)\n\ndf: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, PATIENTCLASSCODE: string, HOSPITALCODE: string, DEPTCODE: string, COMECLINICDATE: string, SPECIALCURECODE: string, CURETYPECODE: string, CUREITEMCHINNAME: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 22,
+      "time" : "Took: 1 second 676 milliseconds, at 2018-3-25 1:58"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab911093794-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "DED7FBF8DE644C6CB90D07CDA97C8FC1"
+    },
+    "cell_type" : "code",
+    "source" : "val dfmodelunique=df.select(\"SPECIALCURECODE\",\"CUREITEMCHINNAME\").distinct()\ndfmodelunique.take(dfmodelunique.count.toInt)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1272053628-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "BC0825968DFF46C18F048549BFFBB96F"
+    },
+    "cell_type" : "code",
+    "source" : "val dfuninomean=df.select(\"PATIENTCLASSCODE\",\"HOSPITALCODE\",\"CURETYPECODE\").distinct()\ndfuninomean.take(dfuninomean.count.toInt)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "dfuninomean: org.apache.spark.sql.DataFrame = [PATIENTCLASSCODE: string, HOSPITALCODE: string, CURETYPECODE: string]\nres39: Array[org.apache.spark.sql.Row] = Array([E,T0,急診診療])\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon03e4b1410edd1a0465cd3b8ea7d0fbba&quot;,&quot;dataInit&quot;:[],&quot;genId&quot;:&quot;1272053628&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tabs'], \n      function(playground, _magictabs) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictabs,\n    \"o\": {}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <div>\n        <ul class=\"nav nav-tabs\" id=\"ul1272053628\"><li>\n              <a href=\"#tab1272053628-0\"><i class=\"fa fa-table\"/></a>\n            </li><li>\n              <a href=\"#tab1272053628-1\"><i class=\"fa fa-cubes\"/></a>\n            </li></ul>\n\n        <div class=\"tab-content\" id=\"tab1272053628\"><div class=\"tab-pane\" id=\"tab1272053628-0\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon70339d47b5fa10422cdbbe23f0cecc38&quot;,&quot;dataInit&quot;:[{&quot;PATIENTCLASSCODE&quot;:&quot;E&quot;,&quot;HOSPITALCODE&quot;:&quot;T0&quot;,&quot;CURETYPECODE&quot;:&quot;急診診療&quot;}],&quot;genId&quot;:&quot;481721699&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tableChart'], \n      function(playground, _magictableChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictableChart,\n    \"o\": {\"headers\":[\"PATIENTCLASSCODE\",\"HOSPITALCODE\",\"CURETYPECODE\"],\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anona9f0875f1a4e2d6b89579ce7d72ab9b9&quot;,&quot;initialValue&quot;:&quot;1&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon4d822ecd5dc82add739f5a5777475c88&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab1272053628-1\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonae7a52f423b94165c68c926acf61b08c&quot;,&quot;dataInit&quot;:[{&quot;PATIENTCLASSCODE&quot;:&quot;E&quot;,&quot;HOSPITALCODE&quot;:&quot;T0&quot;,&quot;CURETYPECODE&quot;:&quot;急診診療&quot;}],&quot;genId&quot;:&quot;1710522772&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/pivotChart'], \n      function(playground, _magicpivotChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicpivotChart,\n    \"o\": {\"width\":600,\"height\":400,\"derivedAttributes\":{},\"extraOptions\":{}}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon120bae460820d4309ea1cbaa8870a566&quot;,&quot;initialValue&quot;:&quot;1&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon79b453307f473b5dc41d73a219247984&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div></div>\n      </div>\n    </div></div>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 24,
+      "time" : "Took: 3 seconds 533 milliseconds, at 2018-3-25 2:1"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1541084288-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7048A80F94114B2FABEFD5CD17ED93F6"
+    },
+    "cell_type" : "code",
+    "source" : "val dfwr=df.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"DEPTCODE\",\"COMECLINICDATE\",\"SPECIALCURECODE\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "write data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab932504813-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "dfwr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C0.parquet\")\ndfmodelunique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C0unique.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C76EAA70D27E42C281210E7731BDA531"
+    },
+    "cell_type" : "code",
+    "source" : "val df4 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_4_急診掛號.csv\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1658932872-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "028B598666084533BFC1015459C04057"
+    },
+    "cell_type" : "code",
+    "source" : "df4.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "5D72E417D2F8437C8D33BFEA5008EB0E"
+    },
+    "cell_type" : "code",
+    "source" : "val df4wr=df4.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"ACCOUNTSEQNO\",\"TRIAGEDATETIME\",\"REGISTERDATETIME\",\"DIAGNOSISDATETIME\",\"OBSERVESTARTDATETIME\",\"STAYREASON\",\n                     \"FINALEMEBEDIDSE\",\"DISCHARGEDATETIME\",\"DISCHARGESTATUS\",\"DISCHARGEREASON\",\"RETURNREASON\",\"VISITINTHREEDAYS\",\"ASSIGNAREA\",\"LATESTPACSREPORTTIME\",\n                     \"READREPORTTIME\",\"ISFIRSTVISIT\",\"INPATIENTBEDIDSE\",\"LATESTREPORTTIME\")\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "6D1BC71BDE6A4B498CF6C952F25A4A4F"
+    },
+    "cell_type" : "code",
+    "source" : "df4wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C4.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "82D731DD23414A88930AB8F6BB634695"
+    },
+    "cell_type" : "code",
+    "source" : "val df5 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_5_離部檢核.csv\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1658932872-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "028B598666084533BFC1015459C04057"
+    },
+    "cell_type" : "code",
+    "source" : "df5.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "5D72E417D2F8437C8D33BFEA5008EB0E"
+    },
+    "cell_type" : "code",
+    "source" : "val df5wr=df5.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"DRMENUDIAGNOSIS\",\"DISCHARGECHECK\",\"SYNPHYSTATUS\",\"EXAMSTATUS\",\"CLINICSTRACE\",\"NOTICE\")\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "19882EB6B82F487A83ADF29BAD8574B8"
+    },
+    "cell_type" : "code",
+    "source" : "df5wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C5.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "4ACDDAE6F0F0423DA8674035BD0EEA3E"
+    },
+    "cell_type" : "markdown",
+    "source" : "6_急診醫令執行檔\\7_急診醫囑執行檔"
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "4864923AAFD74D7685DC6D978243AAB5"
+    },
+    "cell_type" : "code",
+    "source" : "val df6 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_6_急診醫令執行檔.csv\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df6: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, ORDERTYPECODE: string, ORDERSEQNO: int, ORDERCODE: string, ORDERNAME: string, ORDERCHINNAME: string, ORDERQUANTITY: int, BILLTYPECODE: string, CREATEDATETIME: string, EXECUTECOMPLETEDATETIME: string, CANCLESTATUS: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 13,
+      "time" : "Took: 31 seconds 995 milliseconds, at 2018-3-24 22:52"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "9A079B1018B14D74819646756C3558B5"
+    },
+    "cell_type" : "code",
+    "source" : "df6.select(\"CANCLESTATUS\").distinct().show",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+------------+\n|CANCLESTATUS|\n+------------+\n|           N|\n+------------+\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 15,
+      "time" : "Took: 32 seconds 559 milliseconds, at 2018-3-24 22:53"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "show data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "EBE8790F7DF0492FB1B1F4BBB27A8BF0"
+    },
+    "cell_type" : "code",
+    "source" : "df6.printSchema",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "root\n |-- CHARTNO: string (nullable = true)\n |-- ACCOUNTIDSE: string (nullable = true)\n |-- ORDERTYPECODE: string (nullable = true)\n |-- ORDERSEQNO: integer (nullable = true)\n |-- ORDERCODE: string (nullable = true)\n |-- ORDERNAME: string (nullable = true)\n |-- ORDERCHINNAME: string (nullable = true)\n |-- ORDERQUANTITY: integer (nullable = true)\n |-- BILLTYPECODE: string (nullable = true)\n |-- CREATEDATETIME: string (nullable = true)\n |-- EXECUTECOMPLETEDATETIME: string (nullable = true)\n |-- CANCLESTATUS: string (nullable = true)\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 14,
+      "time" : "Took: 1 second 52 milliseconds, at 2018-3-24 22:52"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab683665150-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6CD6E84737EE45FFB567F8A843FA68EC"
+    },
+    "cell_type" : "code",
+    "source" : "//val df6modelunique=df6.select(\"ORDERTYPECODE\",\"ORDERCODE\").distinct()\n//df6modelunique.take(df6modelunique.count.toInt)\n//df6modelunique.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab925663227-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6CD6E84737EE45FFB567F8A843FA68EC"
+    },
+    "cell_type" : "code",
+    "source" : "val df6model1unique=df6.select(\"ORDERCODE\",\"ORDERCHINNAME\",\"ORDERNAME\").distinct()\n//df6model1unique.take(df6model1unique.count.toInt)\ndf6model1unique.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "E01EBDB3C4DB480ABF7D4B0907117589"
+    },
+    "cell_type" : "code",
+    "source" : "val df6wr=df6.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"ORDERTYPECODE\",\"ORDERSEQNO\",\n                     \"ORDERCODE\",\"ORDERQUANTITY\",\"BILLTYPECODE\",\"CREATEDATETIME\"\n                     ,\"EXECUTECOMPLETEDATETIME\")\ndf6wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C6.parquet\")\n\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df6wr: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, ORDERTYPECODE: string, ORDERSEQNO: int, ORDERCODE: string, ORDERQUANTITY: int, BILLTYPECODE: string, CREATEDATETIME: string, EXECUTECOMPLETEDATETIME: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 17,
+      "time" : "Took: 49 seconds 820 milliseconds, at 2018-3-24 22:57"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab932504813-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "df6wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C6.parquet\")\ndf6model1unique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C6unique.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "DC9EBD0824AF474487A38EE6B2372933"
+    },
+    "cell_type" : "code",
+    "source" : "val df7 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_7_急診醫囑執行檔.csv\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df7: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, ORDERTYPECODE: string, ORDERIDSE: int, ORDERSEQNO: int, ORDERTEXT: string, EXECUTEDATETIME: string, PERFORMFLAG: string, STATUS: string, ORDERSTATUS: string, ISCOMPLETED: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 18,
+      "time" : "Took: 7 seconds 687 milliseconds, at 2018-3-25 1:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "show data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C89031A038AF4A8887118BBB2FE7DB13"
+    },
+    "cell_type" : "code",
+    "source" : "df7.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab546816005-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6CD6E84737EE45FFB567F8A843FA68EC"
+    },
+    "cell_type" : "code",
+    "source" : "val df7model1unique=df7.select(\"ORDERTYPECODE\",\"PERFORMFLAG\",\"STATUS\",\"ORDERSTATUS\").distinct()\ndf7model1unique.take(df7model1unique.count.toInt)\n//df6model1unique.count.toInt",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df7model1unique: org.apache.spark.sql.DataFrame = [ORDERTYPECODE: string, PERFORMFLAG: string, STATUS: string, ORDERSTATUS: string]\nres30: Array[org.apache.spark.sql.Row] = Array([K,Y,Y,NW])\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonecffc6962d48f97f855d4b6a4f894ba3&quot;,&quot;dataInit&quot;:[],&quot;genId&quot;:&quot;546816005&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tabs'], \n      function(playground, _magictabs) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictabs,\n    \"o\": {}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <div>\n        <ul class=\"nav nav-tabs\" id=\"ul546816005\"><li>\n              <a href=\"#tab546816005-0\"><i class=\"fa fa-table\"/></a>\n            </li><li>\n              <a href=\"#tab546816005-1\"><i class=\"fa fa-cubes\"/></a>\n            </li></ul>\n\n        <div class=\"tab-content\" id=\"tab546816005\"><div class=\"tab-pane\" id=\"tab546816005-0\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonf009c9a1835535876f017931b64fca75&quot;,&quot;dataInit&quot;:[{&quot;ORDERTYPECODE&quot;:&quot;K&quot;,&quot;PERFORMFLAG&quot;:&quot;Y&quot;,&quot;STATUS&quot;:&quot;Y&quot;,&quot;ORDERSTATUS&quot;:&quot;NW&quot;}],&quot;genId&quot;:&quot;1157862823&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tableChart'], \n      function(playground, _magictableChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictableChart,\n    \"o\": {\"headers\":[\"ORDERTYPECODE\",\"PERFORMFLAG\",\"STATUS\",\"ORDERSTATUS\"],\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon94177aa2086ba494818d348cf137569e&quot;,&quot;initialValue&quot;:&quot;1&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonc1b37d71fd86000946eaeff3dc7d1b3b&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab546816005-1\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon08607ec15921ce80902e3b4cfad3b173&quot;,&quot;dataInit&quot;:[{&quot;ORDERTYPECODE&quot;:&quot;K&quot;,&quot;PERFORMFLAG&quot;:&quot;Y&quot;,&quot;STATUS&quot;:&quot;Y&quot;,&quot;ORDERSTATUS&quot;:&quot;NW&quot;}],&quot;genId&quot;:&quot;2093026344&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/pivotChart'], \n      function(playground, _magicpivotChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicpivotChart,\n    \"o\": {\"width\":600,\"height\":400,\"derivedAttributes\":{},\"extraOptions\":{}}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonc02e98afcd3284bf94751c7daeb2f501&quot;,&quot;initialValue&quot;:&quot;1&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anondb348131ec3db369d9c85bed9a33453f&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div></div>\n      </div>\n    </div></div>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 19,
+      "time" : "Took: 19 seconds 253 milliseconds, at 2018-3-25 1:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "E01EBDB3C4DB480ABF7D4B0907117589"
+    },
+    "cell_type" : "code",
+    "source" : "val df7wr=df7.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"ORDERIDSE\",\"ORDERSEQNO\",\"ORDERTEXT\",\"EXECUTEDATETIME\",\"PERFORMFLAG\",\"ISCOMPLETED\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df7wr: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, ORDERIDSE: int, ORDERSEQNO: int, ORDERTEXT: string, EXECUTEDATETIME: string, PERFORMFLAG: string, ISCOMPLETED: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 20,
+      "time" : "Took: 682 milliseconds, at 2018-3-25 1:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab932504813-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "df7wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C7.parquet\")\ndf7model1unique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C7unique.parquet\")",
+    "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 21,
+      "time" : "Took: 28 seconds 264 milliseconds, at 2018-3-25 1:57"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C6F58BF594004D958EDAB5BFB6A19957"
+    },
+    "cell_type" : "markdown",
+    "source" : "correlation "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "A88899D5ABFE4D4780478952BB61D140"
+    },
+    "cell_type" : "code",
+    "source" : "df6.stat.corr(\"ORDERQUANTITY\", \"ORDERSEQNO\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1016899767-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6A750FA241894A2C9938D654D3651A67"
+    },
+    "cell_type" : "code",
+    "source" : "//val indexer = new StringIndexer().setInputCol(\"ORDERTYPECODE\").setOutputCol(\"productIndex\") \n//val indexed = indexer.fit(df).transform(df)\n//indexed.show()\nval dft=df6.select(\"ORDERNAME\",\"ORDERCHINNAME\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1533997427-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [\n    \"灌食輸液套\"\n  ],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count Unique Values\",\n  \"rendererName\": \"Col Heatmap\"\n}"
+      },
+      "id" : "C1ECDFADB7E549DB850F699DB136A6B1"
+    },
+    "cell_type" : "code",
+    "source" : "val dfte=dft.filter(!(col(\"ORDERNAME\").contains(col(\"ORDERCHINNAME\"))))\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab717966415-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "EB2B5FB6E2BF4CA18B2F7B2823EE98EA"
+    },
+    "cell_type" : "code",
+    "source" : "df8.take(51140)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "07876ADC82E54D5781EBA62818979956"
+    },
+    "cell_type" : "code",
+    "source" : "unique",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "Combined data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "78085D68405A41C48589370FD6A434F7"
+    },
+    "cell_type" : "code",
+    "source" : "val dfcarenote = df6.join(df7, Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))\n//val dfcarenote = df6.join(df7, Seq(\"CHARTNO\",\"ACCOUNTIDSE\",\"ORDERSEQNO\"))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab1988708471-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7B75F1BF5C5F486D83241698CC46E62D"
+    },
+    "cell_type" : "code",
+    "source" : "//dfcarenote.take(236429804)\ndfcarenote.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "C2C87B154556495F939B378996C628F8"
+    },
+    "cell_type" : "markdown",
+    "source" : "8_照會紀錄/9_照會時間紀錄"
+  }, {
+    "metadata" : {
+      "id" : "5E2077C742F74C7F92B45A802F521D46"
+    },
+    "cell_type" : "markdown",
+    "source" : "readdata"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "405DE19B3D0F4AAF8ED106A13F4BEF43"
+    },
+    "cell_type" : "code",
+    "source" : "val df8 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_8_照會紀錄.csv\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df8: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, PATIENTCLASSCODE: string, CALLONIDSE: int, CREATEWARDCODE: string, CREATEROOMCODEBEDNO: string, CALLONHOSPCODE: string, CALLONDEPTCODE: string, NOTSUBDEPTIDSE: int, NOTSUBDEPTCHINNAME: string, NOTTYPECODE: string, TYPEDESCRIPTION: string, REPLYDIAGNOSIS: string, CALLONSTATUS: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 3,
+      "time" : "Took: 3 seconds 48 milliseconds, at 2018-3-25 2:42"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "0B646E0A18A9442286BB67C17FCC4B59"
+    },
+    "cell_type" : "markdown",
+    "source" : "show data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "05E08C719A8245858076B6BD4CC83E1D"
+    },
+    "cell_type" : "code",
+    "source" : "df8.printSchema",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab2117489678-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6CD6E84737EE45FFB567F8A843FA68EC"
+    },
+    "cell_type" : "code",
+    "source" : "val df8model1unique=df8.select(\"NOTSUBDEPTIDSE\",\"NOTSUBDEPTCHINNAME\").distinct()\n//df8model1unique.take(df8model1unique.count.toInt)\nval df8model2unique=df8.select(\"NOTTYPECODE\",\"TYPEDESCRIPTION\").distinct()\n//df8model2unique.take(df8model2unique.count.toInt)\n//df6model1unique.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "E01EBDB3C4DB480ABF7D4B0907117589"
+    },
+    "cell_type" : "code",
+    "source" : "val df8wr=df8.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"CALLONIDSE\",\"CREATEWARDCODE\",\"CALLONDEPTCODE\",\"NOTSUBDEPTIDSE\",\"NOTTYPECODE\",\"REPLYDIAGNOSIS\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab932504813-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "df8wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8.parquet\")\ndf8model1unique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique.parquet\")\ndf8model2unique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C8unique2.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "A298BF345D6A40158536E07C6B2239EE"
+    },
+    "cell_type" : "code",
+    "source" : "val df9 = sqlContext.read.format(\"com.databricks.spark.csv\").option(\"header\", \"true\").option(\"inferSchema\", \"true\").option(\"delimiter\", \"|\").option(\"charset\",\"big5\").load(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/C44_9_照會時間紀錄.csv\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "df9: org.apache.spark.sql.DataFrame = [CHARTNO: string, ACCOUNTIDSE: string, CALLONIDSE: int, CALLONEVENTCODE: int, EVENTDATETIME: string]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 25,
+      "time" : "Took: 1 second 23 milliseconds, at 2018-3-25 2:38"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B3DA4500D8784A46911E0018487B556D"
+    },
+    "cell_type" : "code",
+    "source" : "df9.printSchema",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "root\n |-- CHARTNO: string (nullable = true)\n |-- ACCOUNTIDSE: string (nullable = true)\n |-- CALLONIDSE: integer (nullable = true)\n |-- CALLONEVENTCODE: integer (nullable = true)\n |-- EVENTDATETIME: string (nullable = true)\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 26,
+      "time" : "Took: 692 milliseconds, at 2018-3-25 2:38"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab2117489678-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6CD6E84737EE45FFB567F8A843FA68EC"
+    },
+    "cell_type" : "code",
+    "source" : "val df9model1unique=df9.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"CALLONIDSE\").distinct()\ndf9model1unique.take(df9model1unique.count.toInt)\n//df6model1unique.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "E01EBDB3C4DB480ABF7D4B0907117589"
+    },
+    "cell_type" : "code",
+    "source" : "val df9wr=df9.select(\"CHARTNO\",\"ACCOUNTIDSE\",\"CALLONIDSE\",\"CALLONEVENTCODE\",\"EVENTDATETIME\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab932504813-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "87C998C5132A4C8E8AFE8B83B3EAE490"
+    },
+    "cell_type" : "code",
+    "source" : "df9wr.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C9.parquet\")\ndf9model1unique.write.format(\"parquet\").save(\"/Users/chris/spark-notebook-0.7.0-scala-2.11.7-spark-1.6.3-hadoop-2.7.2-with-hive-with-parquet/notebooks/precoess/data/parquet/C9unique.parquet\")",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "1ADF66D261FC480E821A1B9D0E36B99D"
+    },
+    "cell_type" : "code",
+    "source" : "df8.show\ndf9.show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D59B1796F70C4F538C356A5546961506"
+    },
+    "cell_type" : "code",
+    "source" : "val datacount8=df8.count.toInt\nval datacount9=df9.count.toInt",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab166743342-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [\n    \"CHARTNO\"\n  ],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count Unique Values\",\n  \"rendererName\": \"Table Barchart\"\n}"
+      },
+      "id" : "40F13E4765B04323B3B0D6D67CAA5620"
+    },
+    "cell_type" : "code",
+    "source" : "df8.take(datacount8)\ndf9.take(datacount9)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "A1D57A3940F041F8862499CD69705701"
+    },
+    "cell_type" : "markdown",
+    "source" : "Combined data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab427125267-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "90E1D68F87A642F59C19B13E2D46E3F6"
+    },
+    "cell_type" : "code",
+    "source" : "//var combineddf = df.join(df4, df.col(\"CHARTNO\",\"ACCOUNTIDSE\").equalTo(df4(\"CHARTNO\",\"ACCOUNTIDSE\")))\nval dfcarerecord = df8.join(df9, Seq(\"CHARTNO\",\"ACCOUNTIDSE\"))",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "DDCF551B2B4A43CE869BA43B4BBC8C2F"
+    },
+    "cell_type" : "code",
+    "source" : "val dfcarenotecount = dfcarenote.count.toInt\n//dfcarenote.take(dfcarenotecount)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab576758144-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "7B75F1BF5C5F486D83241698CC46E62D"
+    },
+    "cell_type" : "code",
+    "source" : "//dfcarenote.take()\ndfcarerecord.take(1000)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "DA5B08F982FE4F8B937B50B3BE051EF2"
+    },
+    "cell_type" : "markdown",
+    "source" : "try\n"
+  }, {
+    "metadata" : {
+      "id" : "BAAE1E7241B34F1C969C3B034F924232"
+    },
+    "cell_type" : "markdown",
+    "source" : "save dataframe"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "077FDE752CF94168BAAFA8D4E604237B"
+    },
+    "cell_type" : "code",
+    "source" : "dfcarenote.filter(\"ACCOUNTIDSE\" == \"A298405\").show",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "BC81BFDE7FE544298DD5E84F954751C1"
+    },
+    "cell_type" : "code",
+    "source" : "df.write.mode('append').json(yourtargetpath)\ndataframe.write.format(\"org.apache.spark.sql.json\").mode(SaveMode.Append).save(\"hdfs://localhost:9000/sampletext.txt\");\n",
+    "outputs" : [ ]
+  } ],
+  "nbformat" : 4
+}
