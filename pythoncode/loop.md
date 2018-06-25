@@ -27,7 +27,7 @@ loop in pandas
   for val in brics:
     print(val)   (這裡印出來的是column名)
   for lab, row in brics.iterrows():
-    print(lab)
+    print(lab)   (lab是row name ex.BU，row是BU這行的全部column內容)
     print(row)
   for lab, row in brics.iterrows():
     print(lab+": "+row["capital"])  (選出想印的column)
