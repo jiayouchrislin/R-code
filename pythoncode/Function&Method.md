@@ -88,4 +88,12 @@ def print_all(**kwargs):
   for key, value in kwargs.item():
     print(key+": "+value)
 
+Lambda Function 就是直接傳回要的值，比return方便，但比較不整齊的寫法
+raise_to_power=lambda x,y:x**y  (不知道要不要加框號()耶)
+raise_to_power(2,3)
 
+Map:把所有的element都用到function中  map(Function,seq)
+square_all=map(lambda num:num**2, nums)
+print(list(square_all))
+
+filter(): offers a way to filter out elements from a list that don't satisfy certain criteria
