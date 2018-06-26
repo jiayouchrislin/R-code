@@ -97,3 +97,23 @@ square_all=map(lambda num:num**2, nums)
 print(list(square_all))
 
 filter(): offers a way to filter out elements from a list that don't satisfy certain criteria
+
+exception 知道是哪裡出問題
+分種類
+exception TypeError:套用的object是inappropriate type
+exception UnboundLocalError :找不到要使用的變數
+exception UnicodeError:看不懂QQ 只說是ValueError
+def sqrt(x):
+  try:
+    return x**0.5
+  except TypeError:
+    print("x must be an int or float")
+用Raise (但詳細原理沒有到非常清楚)
+def sqrt(x):
+  if x<0:
+    raise ValueError("x must be non-negative")
+  try:
+    return x**0.5
+  except TypeError:
+    print("x must be an int or float")
+sqrt(-2) 會跑出ValueError:x must be non-negative
