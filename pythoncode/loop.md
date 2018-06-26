@@ -33,8 +33,7 @@ loop in pandas
     print(lab+": "+row["capital"])  (選出想印的column)
   增加column
   for lab, row in brics.iterrows():
-    brics.loc[lab,"name_length"]=len(row["country"])
-  =
-  bircs["name_length"]=bircs["country"].apply(len)
+    brics.loc[lab,"name_length"]=len(row["country"])  (row name也就是lab叫name_length，row的內容是country的字串長度len)
+  = bircs["name_length"]=bircs["country"].apply(len)  (這種比較好懂)
   
     
