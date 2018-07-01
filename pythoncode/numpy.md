@@ -44,3 +44,9 @@ np.std(np_city[:,0])
 np.round(np.random.nomal(1.75,20,5000),2) (1.75,0.20,5000)分別為散佈的平均、標準差、產生的數目
 變成2.D array
 np_city=np.column.stack((height,weight))
+看是否一樣
+(a==b).all() a b完全一樣的話傳回True否則為False
+(a==b).any() a b只要有一個一樣的話傳回True否則為False
+跟上面比較
+np.all: 如果所有的值都是真或者非零则返回 True, 否则返回 False.
+np.any: ndarray 中有任何真值或者非零值则返回 True.
