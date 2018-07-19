@@ -30,3 +30,23 @@ list格式:[]  比較:numpy array:array[]
   y=x這步要改成
   y=list(x)
   y=x[:]
+
+list comprehension
+  nums=[12,8,21,3,16]
+  new_nums=[num+1 for num in nums]  (這樣不用特別一個for loop)
+  result=[num for num in range(11)] (result=[0,1,2....,10])
+  
+nested loop in list comprehension
+  pairs_1=[]
+  for num1 in range(0,2):
+    for num2 in range(6,8):
+      pairs_1.append(num1, num2)
+      結果:[(0,6),(0,7),(1,6),(1,7)]
+  轉換成
+  pairs_2=[(num1,num2) for num1 in range(0,2) for num2 in range(6,8)]
+  
+Conditionals in list comprehensions
+  [num**2 for num in range(10) if num%2=0]
+  結果:[0,4,16,36,64]
+  [num**2 if num%2=0 else 0 for num in range(10) ]
+  結果:[0,0,4,0,16,0,36,0,64,0]
