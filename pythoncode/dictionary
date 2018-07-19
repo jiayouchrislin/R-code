@@ -33,3 +33,7 @@ Dictionary跟list的比較
   相異:list索引是數字、dictionary是靠key
   list使用時間:需要選取整個subset
   dictionary:以key來尋找內容
+
+dictionary comprehension (詳細可見list comprehensiom)
+  pos_neg={num:-num for num in range(9)}
+  結果{0:0,1:-1,2:-2.....,8:-8}
